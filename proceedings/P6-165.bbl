@@ -1,0 +1,15 @@
+\begin{thebibliography}{}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+\expandafter\ifx\csname url\endcsname\relax
+  \def\url#1{\texttt{#1}}\fi
+\expandafter\ifx\csname urlprefix\endcsname\relax\def\urlprefix{URL }\fi
+\providecommand{\eprint}[2][]{\url{#2}}
+
+\bibitem[{{Armin Ronacher} et~al.(10  )}]{Ronacher}
+{Armin Ronacher}, et~al. 2010--, {Flask}: web development one drop at a time.
+  [Online; accessed 2017-09-04], \urlprefix\url{http://flask.pocoo.org/}
+
+\bibitem[{{Ed Smith} et~al.(2011)}]{Smith}
+{Ed Smith}, et~al. 2011, Introduction to the HST Data Handbooks, 8
+
+\end{thebibliography}

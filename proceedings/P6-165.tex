@@ -1,0 +1,133 @@
+% This is the ADASS_template.tex LaTeX file, 12th August 2017.
+% It is based on the ASP general author template file, but modified to reflect the specific
+% requirements of the ADASS proceedings.
+% Copyright 2014, Astronomical Society of the Pacific Conference Series
+% Revision:  14 August 2014
+
+% To compile, at the command line positioned at this folder, type:
+% latex ADASS_template
+% latex ADASS_template
+% dvipdfm ADASS_template
+% This will create a file called aspauthor.pdf.}
+
+\documentclass[11pt,twoside]{article}
+
+% Do not use packages other than asp2014.
+\usepackage{asp2014}
+
+\aspSuppressVolSlug
+\resetcounters
+
+% References must all use BibTeX entries in a .bibfile.
+% References must be cited in the text using \citet{} or \citep{}.
+% Do not use \cite{}.
+% See ManuscriptInstructions.pdf for more details
+\bibliographystyle{asp2014}
+
+% The ``markboth'' line sets up the running heads for the paper.
+% 1 author: "Surname"
+% 2 authors: "Surname1 and Surname2"
+% 3 authors: "Surname1, Surname2, and Surname3"
+% >3 authors: "Surname1 et al."
+% Replace ``Short Title'' with the actual paper title, shortened if necessary.
+% Use mixed case type for the shortened title
+% Ensure shortened title does not cause an overfull hbox LaTeX error
+% See ASPmanual2010.pdf 2.1.4  and ManuscriptInstructions.pdf for more details
+\markboth{Bourque et al.}{The HST/ACS Quicklook Application}
+
+\begin{document}
+
+\title{The Hubble Space Telescope Advanced Camera for Surveys Quicklook Application}
+
+% Note the position of the comma between the author name and the
+% affiliation number.
+% Author names should be separated by commas.
+% The final author should be preceded by "and".
+% Affiliations should not be repeated across multiple \affil commands. If several
+% authors share an affiliation this should be in a single \affil which can then
+% be referenced for several author names.
+% See ManuscriptInstructions.pdf and ASPmanual2010.pdf 3.1.4 for more details
+\author{Matthew Bourque,$^1$ Sara Ogaz,$^1$ Alex Viana,$^2$, Meredith Durbin,$^3$ and Norman Grogin$^1$
+\affil{$^1$Space Telescope Science Institute, Baltimore, Maryland, USA}
+\affil{$^2$Terbium Labs, Baltimore, Maryland, USA}}
+\affil{$^3$University of Washington, Seattle, Washington, USA}
+
+% This section is for ADS Processing.  There must be one line per author.
+\paperauthor{Matthew Bourque}{bourque@stsci.edu}{ORCID_Or_Blank}{Space Telescope Science Institute}{INS Division}{Baltimore}{Maryland}{21218}{USA}
+\paperauthor{Sara Ogaz}{ogaz@stsci.edu}{ORCID_Or_Blank}{Space Telescope Science Institute}{OED Division}{Baltimore}{Maryland}{21218}{USA}
+\paperauthor{Alex Viana}{alexcostaviana@gmail.com}{ORCID_Or_Blank}{Terbium Labs}{Something}{Baltimore}{Maryland}{21218}{USA}
+\paperauthor{Meredith Durbin}{mdurbin@uw.edu}{ORCID_Or_Blank}{University of Washington}{Department of Astronomy}{Seattle}{Washington}{98195}{USA}
+\paperauthor{Norman Grogin}{ngrogin@stsci.edu}{ORCID_Or_Blank}{Space Telescope Science Institute}{INS Division}{Baltimore}{Maryland}{21218}{USA}
+
+\begin{abstract}
+The Hubble Space Telescope (HST) Advanced Camera for Surveys (ACS) instrument has been acquiring thousands of images each year
+since its installation in 2002 (via Servicing Mission 3B) and subsequent restoration in 2009 (via Servicing Mission 4).
+The ACS Quicklook project (\texttt{acsql}) provides a means for users to view all on-orbit ACS image and header data through a
+browser interface, an API to build custom datasets through relational queries, and a platform on which to build automated
+instrument calibration and monitoring routines.  This is accomplished through the various system components: (1) a $\sim$40 TB
+filesystem, which stores all publicly-available ACS data on disk, (2) a MySQL database, which stores all publicly-available
+FITS header data for each ACS filetype and header extension, (3) a Python/Flask-based web application, which allows users to
+navigate and display any public ACS archival data, and (4) a Python code library, which serves as the filesystem, database,
+and website API.  ACS Quicklook is intended to be extended to support the forthcoming James Webb Space Telescope mission.
+\end{abstract}
+
+
+\section{Introduction}
+
+The ACS Quicklook Application (hereinafter referred to as ``\texttt{acsql}") is a Python-based application for discovering, viewing, and
+querying all publicly-available ACS data.  It consists of: (1) A filesystem that stores ACS instrument data files
+and ``Quicklook" JPEGs in an organized Network File System (NFS) (hereinafter referred to as the ``\texttt{acsql} filesystem"), (2) A
+\texttt{MySQL} database that stores observational metadata of each observation (hereinafter referred to as the ``\texttt{acsql} database"),
+(3) A Python/\texttt{Flask}-based web application for interacting with the filesystem and database (hereinafter referred to as the
+``\texttt{acsql} web application"), and (4) A Python code library that contains software for connecting to the database, ingesting new data,
+logging production code execution, and building/maintaining the web application (hereinafter referred to as the ``\texttt{acsql} library"
+or ``\texttt{acsql} package").  Below, we futher describe each of these main components.
+
+
+\section{Filesystem}
+
+The \texttt{acsql} filesystem is a Network File System (NFS) that stores all publically available on-orbit ACS data on disk in an
+organized set of directories and subdirectories hosted at STScI. Figure \ref{fig1} shows an example of this directory structure.  The
+parent directory is the first four characters of the 9-character rootname, which has a one-to-one correspondence with an
+individual ACS proposal \citet{Smith}. The subdirectories of the parent directories are named after the full 9-character rootname such that
+each parent directory contains all rootnames that were observed for the particular proposal.  Furthermore, each rootname
+subdirectory contains every available filetype for the particular observation. Figure \ref{fig1} also shows how the filesystem has
+evolved over the lifetime of the ACS mission based on the number of ACS observations taken from its three detectors: Wide Field Channel (WFC),
+High Resolution Channel (HRC) and Solar Blind Channel (SBC).  Currently, the filesystem occupies $\sim${40} TB of storage space across
+$\sim$215,000 observations.
+
+\articlefiguretwo{P6-165_f1a.eps}{P6-165_f1b.eps}{fig1}{\emph{Left:} A representation of the \texttt{acsql} filesystem directory
+structure, organized by rootname.  \emph{Right:} The number of ACS observations over time for each of the three detectors.  Each observation
+corresponds to a single 9-character rootname.}
+
+
+\section{Database}
+
+Another major component of the \texttt{acsql} application is a relational database that stores all FITS header key/value pairs for
+each ACS filetype and each FITS file extension for all on-orbit ACS observations.  Such a database allows users to perform relational queries for
+any observational metadata based on the header keywords.  To accomplish this, we implemented the relational schema shown in Figure \ref{fig2}.
+The \texttt{acsql} database contains 111 tables in total: one \texttt{master} table, which contains basic information about each rootname that is
+important for maintaining the database, one \texttt{datasets} table which indicate which filetypes are available for a particular rootname, and 109
+`header' tables which stores the header key/value pairs, one for each \texttt{detector}-\texttt{filetype}-\texttt{extension} combination
+(e.g. \texttt{wfc$\_$raw$\_$0}).
+
+\articlefiguretwo{P6-165_f2a.eps}{P6-165_f2b.eps}{fig2}{\emph{Left:} The relational schema for the \texttt{acsql} database. \emph{Right:} An example of a query performed on the \texttt{acsql} database using
+the \texttt{database$\_$interface.py} module.}
+
+
+\section{Web Application}
+
+The front-end of the \texttt{acsql} application is the web application.  The web application is built using Python and \texttt{Flask}, which is a
+Python based web framework (\citet{Ronacher}).  Currently, the web application has two main features/modes of use: (1) viewing JPEGs and image
+metadata for any publicly-available ACS \texttt{raw}, \texttt{flt}, and \texttt{flc} image (when applicible), and (2) performing relational queries
+on the \texttt{acsql} database.  To illustrate these features, we show examples of some of the different webpages that make up the web application
+in Figure \ref{fig3} and Figure \ref{fig4}.
+
+\articlefigure[width=3.0in]{P6-165_f3.eps}{fig3}{An example webpage for viewing dataset \texttt{jcs718kmq}.}
+\articlefiguretwo{P6-165_f4a.eps}{P6-165_f4b.eps}{fig4}{The Quicklook homepage (\emph{top}), a Quicklook webpage showing results of a database query (\emph{middle}), and a Quicklook webpage for viewing a single image (\emph{bottom}).}
+
+\acknowledgements We would like to thank the Advanced Camera for Surveys team at STScI for their continued support of this project. We would also like to thank the members of the Operations and Engineering Division (OED) and the Information Technology Services Division (ITSD) at STScI for their assistance on archival and computer support issues.  Finally,  we would like to thank the Towson University Computer Science Department for their support of this project as part of the author's Computer Science Master's Degree project.
+
+\bibliography{P6-165}
+
+\end{document}
